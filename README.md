@@ -35,8 +35,16 @@ Then it works??
 ## Credits
 
 - [zsh-capture-completion](https://github.com/Valodim/zsh-capture-completion)
+  for writing `./capture.zsh`
 
 ## Licenses
 
 See both [my (UN)LICENSE](./UNLICENSE), and
 and [for zsh-capture-completion](./zsh-capture-completion.LICENSE)
+
+## AI-disclaimer
+
+Until I learn how to code J🤢vaScr🤮pt  and rewrite it all,
+I have to admit that most of the server.js was written by <https://duck.ai>.
+
+I have done most of the shell-script except `./capture.zsh`
