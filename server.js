@@ -7,7 +7,7 @@ const connection = createConnection(process.stdin, process.stdout, ProposedFeatu
 const documents = new TextDocuments(TextDocument);
 documents.listen(connection);
 
-const CAPTURE_SCRIPT = process.env.ZSH_CAPTURE_SCRIPT || '/home/kashnomo/projects/lzp/capture.zsh';
+const CAPTURE_SCRIPT = process.env.ZSH_CAPTURE_SCRIPT || (process.env.HOME + '/projects/lzp/capture.zsh');
 
 connection.onInitialize(() => ({
 	capabilities: {
@@ -37,8 +37,27 @@ function runCapture(argSequence) {
 	return res.stdout || '';
 }
 
-function parseCandidates(output) {
-	return output.split(/\r?\n/).map(s => s.trim()).filter(s => s && !s.startsWith('ok') && !s.startsWith('error'));
+// function parseCandidates(output) {
+// 	return output.split(/\r?\n/).map(s => s.trim()).filter(s => s && !s.startsWith('ok') && !s.startsWith('error'));
+// }
+
+function parseCandidates(output) { // TEST:
+	return output
+		.split(/\r?\n/)
+		.map(s => s.trim())
+		.filter(s => s && !s.startsWith('ok') && !s.startsWith('error'))
+		.map(s => {
+			const parts = s.split(/\s+/, 2); // first word, rest
+			const label = parts[0];
+			const detail = s.slice(label.length).trim(); // preserve everything after first word
+			return { label, detail };
+		});
+}
+function kindForCandidate(label, detail) {
+	if (label.endsWith('/')) return CompletionItemKind.Folder;
+	if (label.includes('=') || /^[a-zA-Z_][a-zA-Z0-9_]*=$/.test(label)) return CompletionItemKind.Field;
+	if (detail) return CompletionItemKind.Function;
+	return CompletionItemKind.Text;
 }
 
 connection.onCompletion((params) => {
@@ -50,7 +69,13 @@ connection.onCompletion((params) => {
 	try {
 		const out = runCapture(arg);
 		const cand = parseCandidates(out);
-		return cand.map((c, i) => ({ label: c, kind: CompletionItemKind.Text, sortText: ('000' + i).slice(-4) }));
+		// return cand.map((c, i) => ({ label: c, kind: CompletionItemKind.Text, sortText: ('000' + i).slice(-4) }));
+		return cand.map((c, i) => ({ // TEST:
+			label: c.label,
+			kind: kindForCandidate(c.label, c.detail),
+			detail: c.detail || undefined,
+			sortText: ('000' + i).slice(-4)
+		}));
 	} catch (e) {
 		connection.console.error('capture error: ' + e.message);
 		return [];

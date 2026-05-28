@@ -1,9 +1,11 @@
 // node test-client.js
 const { spawn } = require('child_process');
 
-const server = spawn('node', ['/home/kashnomo/projects/lzp/server.js'], {
-	stdio: ['pipe', 'pipe', 'inherit']
-});
+// const server = spawn('node', ['/home/kashnomo/projects/lzp/server.js'], {
+// 	stdio: ['pipe', 'pipe', 'inherit']
+// });
+
+const server = spawn('/home/kashnomo/projects/lzp/server.lua', [], { stdio: ['pipe', 'pipe', 'inherit'] });
 
 function send(obj) {
 	const s = JSON.stringify(obj);

@@ -1,5 +1,15 @@
 # lzp
 
+If most calc come from zsh itself, then coding it to rust or something is
+kind of dumb...,
+but JS is also kind of bad...
+
+## Features
+
+- zsh completions
+
+(that's it)
+
 ## USAGE
 
 ```zsh
@@ -46,5 +56,6 @@ and [for zsh-capture-completion](./zsh-capture-completion.LICENSE)
 
 Until I learn how to code J🤢vaScr🤮pt  and rewrite it all,
 I have to admit that most of the server.js was written by <https://duck.ai>.
+(or I should just rewrite everything to _lua_ or something)
 
 I have done most of the shell-script except `./capture.zsh`
