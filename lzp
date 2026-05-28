@@ -7,21 +7,20 @@
 
 # Adjust these paths to your setup:
 LZP_PROJECT_DIR="${LZP_PROJECT_DIR:-${HOME}/projects/lzp}"
-LZP_COMPLETION_SCRIPT_PATH="${LZP_COMPLETION_SCRIPT_PATH:-${LZP_PROJECT_DIR}/completion.zsh}"
-LZP_NODE_SERVER="${LZP_NODE_SERVER:-${PROJECT_DIR}/server.js}"
+LZP_CAPTURE_SCRIPT="${LZP_COMPLETION_SCRIPT_PATH:-${LZP_PROJECT_DIR}/capture.zsh}"
+LZP_NODE_SERVER="${LZP_NODE_SERVER:-${LZP_PROJECT_DIR}/server.js}"
 
 # If invoked with zero args -> act as launcher for the LSP (start Node server)
 if [[ $# -eq 0 ]]; then
-    export ZSH_COMPLETION_SCRIPT="$(realpath "${0}")"
     exec node "${LZP_NODE_SERVER}"
 fi
 
 # If invoked with an arg -> act as wrapper forwarding to the real completion script.
 # Preserve the argument (it includes backspaces sequence produced by server).
-if [[ ! -x "${COMPLETION_SCRIPT_PATH}" ]]; then
-    echo "error: completion script not executable: ${COMPLETION_SCRIPT_PATH}" >&2
+if [[ ! -x "${LZP_CAPTURE_SCRIPT}" ]]; then
+    echo "error: completion script not executable: ${LZP_CAPTURE_SCRIPT}" >&2
     exit 1
 fi
 
 # Forward single argument and pipe stdin through
-exec "${COMPLETION_SCRIPT_PATH}" "$1"
+exec "${LZP_CAPTURE_SCRIPT}" "$1"

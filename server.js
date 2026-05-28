@@ -1,10 +1,13 @@
-// node server.js
-const { createConnection, ProposedFeatures, TextDocuments, CompletionItemKind } = require('vscode-languageserver/node');
-const { spawnSync } = require('child_process');
-const connection = createConnection(ProposedFeatures.all);
-const documents = new TextDocuments();
+const {
+	createConnection, ProposedFeatures, TextDocuments, CompletionItemKind
+} = require('vscode-languageserver/node');
+const { TextDocument } = require('vscode-languageserver-textdocument');
 
-const COMPLETION_SCRIPT = process.env.ZSH_COMPLETION_SCRIPT || '/usr/local/bin/completion.zsh'; // path to your script or wrapper
+const connection = createConnection(process.stdin, process.stdout, ProposedFeatures.all);
+const documents = new TextDocuments(TextDocument);
+documents.listen(connection);
+
+const CAPTURE_SCRIPT = process.env.ZSH_CAPTURE_SCRIPT || '/home/kashnomo/projects/lzp/capture.zsh';
 
 connection.onInitialize(() => ({
 	capabilities: {
@@ -13,40 +16,28 @@ connection.onInitialize(() => ({
 	}
 }));
 
-// get single-line text for a given LSP position.line
 function getLineText(doc, line) {
 	const text = doc.getText();
 	const lines = text.split(/\r?\n/);
-	return lines[line] ?? '';
+	return lines[line] || '';
 }
 
-// build sequence: full line + (full.length - col) backspaces
-function buildArgSequence(full, col) {
+function buildArg(full, col) {
 	const colIdx = Math.max(0, col);
 	const move = Math.max(0, full.length - colIdx);
 	const backspaces = move ? Array(move).fill('\b').join('') : '';
-	return full + backspaces; // completion.zsh appends the Tab itself
+	return full + backspaces;
 }
 
-function runCompletionScript(argSequence, fullBuffer) {
-	// call the completion script with the sequence as single arg; provide full buffer on stdin if needed
-	// we keep it simple: pass argSequence as arg0
-	const res = spawnSync(COMPLETION_SCRIPT, [argSequence], {
-		encoding: 'utf8',
-		input: fullBuffer,
-		timeout: 2000
-	});
+function runCapture(argSequence) {
+	const { spawnSync } = require('child_process');
+	const res = spawnSync(CAPTURE_SCRIPT, [argSequence], { encoding: 'utf8', timeout: 3000 });
 	if (res.error) throw res.error;
-	if (res.status !== 0) {
-		// prefer stdout if any, else stderr
-		throw new Error(res.stderr || `exit ${res.status}`);
-	}
+	if (res.status !== 0) throw new Error(res.stderr || `exit ${res.status}`);
 	return res.stdout || '';
 }
 
 function parseCandidates(output) {
-	// completion.zsh prints an init "ok" line; then outputs matches.
-	// We'll return all non-empty lines that do not start with "ok" or "error".
 	return output.split(/\r?\n/).map(s => s.trim()).filter(s => s && !s.startsWith('ok') && !s.startsWith('error'));
 }
 
@@ -55,20 +46,15 @@ connection.onCompletion((params) => {
 	if (!doc) return [];
 	const pos = params.position;
 	const lineText = getLineText(doc, pos.line);
-	const argSeq = buildArgSequence(lineText, pos.character);
+	const arg = buildArg(lineText, pos.character);
 	try {
-		const out = runCompletionScript(argSeq, doc.getText());
-		const candidates = parseCandidates(out);
-		return candidates.map((c, i) => ({
-			label: c,
-			kind: CompletionItemKind.Text,
-			sortText: ('000' + i).slice(-4)
-		}));
+		const out = runCapture(arg);
+		const cand = parseCandidates(out);
+		return cand.map((c, i) => ({ label: c, kind: CompletionItemKind.Text, sortText: ('000' + i).slice(-4) }));
 	} catch (e) {
-		connection.console.error('completion error: ' + e.message);
+		connection.console.error('capture error: ' + e.message);
 		return [];
 	}
 });
 
-documents.listen(connection);
 connection.listen();
