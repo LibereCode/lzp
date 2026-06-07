@@ -60,6 +60,14 @@ function kindForCandidate(label, detail) {
 	return CompletionItemKind.Text;
 }
 
+function getWordStart(lineText, col) {
+	let start = col - 1;
+	while (start >= 0 && /\S/.test(lineText[start])) {
+		start--;
+	}
+	return start + 1;
+}
+
 connection.onCompletion((params) => {
 	const doc = documents.get(params.textDocument.uri);
 	if (!doc) return [];
@@ -69,12 +77,20 @@ connection.onCompletion((params) => {
 	try {
 		const out = runCapture(arg);
 		const cand = parseCandidates(out);
+		const wordStart = getWordStart(lineText, pos.character);
 		// return cand.map((c, i) => ({ label: c, kind: CompletionItemKind.Text, sortText: ('000' + i).slice(-4) }));
 		return cand.map((c, i) => ({ // TEST:
 			label: c.label,
 			kind: kindForCandidate(c.label, c.detail),
 			detail: c.detail || undefined,
-			sortText: ('000' + i).slice(-4)
+			sortText: ('000' + i).slice(-4),
+			textEdit: {
+				range: {
+					start: { line: pos.line, character: wordStart },
+					end: { line: pos.line, character: pos.character }
+				},
+				newText: c.label
+			}
 		}));
 	} catch (e) {
 		connection.console.error('capture error: ' + e.message);
