@@ -1,0 +1,3 @@
+# [DEBUG][2026-06-07 09:50:03] /usr/share/nvim/runtime/lua/vim/lsp/client.lua:756	"LSP[ty]"	"client.request"	1	"textDocument/completion"	{ context = { triggerKind = 1 }, position = { character = 12, line = 61 }, textDocument = { uri = "file:///home/kashnomo/projects/lzp2/lzp.py" } }	<function 1>	1
+
+# [DEBUG][2026-06-07 09:50:03] /usr/share/nvim/runtime/lua/vim/lsp/rpc.lua:354	"rpc.send"	{ id = 17, jsonrpc = "2.0", method = "textDocument/completion", params = { context = { triggerKind = 1 }, position = { character = 12, line = 61 }, textDocument = { uri = "file:///home/kashnomo/projects/lzp2/lzp.py" } } }
