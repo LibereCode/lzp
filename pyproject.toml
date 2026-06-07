@@ -1,0 +1,13 @@
+[project]
+name = "prog-grund"
+authors = [
+{name = "Kaspain", email = "kaspian-s@posteo.lu"},
+]
+description = "Labs from the cource"
+readme = "README.md"
+license = "MIT"
+[project.urls]
+Repository = "https://github.com/kaspians/prog-grund.git"
+
+[tool.ty.environment]
+python-version = "3.14"
